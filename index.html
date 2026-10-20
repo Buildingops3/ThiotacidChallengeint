@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Thiotacid Launch Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --crimson:#A3141C; --crimson-dk:#7E0F15; --red:#E2202B; --amber:#F2A619; --teal:#0F2A36;
+    --silver:#EEF0F3; --ink:#1C1C1E; --muted:#5D6270; --line:#D5D8DE; --white:#FFFFFF; --ok:#1E7F4F;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  :root:not([data-theme="light"]){color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  body{font-family:'Poppins','Segoe UI',system-ui,sans-serif;background:var(--silver);color:var(--ink);line-height:1.5}
+  .app{max-width:430px;min-height:100%;margin:0 auto;position:relative;background:var(--white);overflow:hidden}
+  .screen{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+  .hidden{display:none !important}
+  button,input{font:inherit}
+  :focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+  .wordmark{font-weight:800;letter-spacing:-1.5px;line-height:1}
+  .btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font-weight:600;font-size:16px;cursor:pointer;background:var(--crimson);color:#fff;min-height:52px}
+  .btn:disabled{opacity:.6;cursor:default}
+  .link{background:none;border:0;color:var(--crimson);font-weight:500;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
+  .err{color:var(--crimson);font-size:14px;min-height:1.2em}
+  .chip{font-size:12px;font-weight:500;border-radius:99px;padding:4px 12px}
+  .preview{position:absolute;top:8px;right:8px;z-index:5;font-size:11px;font-weight:600;background:#fff;color:var(--crimson);border-radius:99px;padding:2px 10px}
+
+  /* Register */
+  .hero{position:relative;height:300px;background:var(--crimson);overflow:hidden;flex-shrink:0;color:#fff}
+  .hero .band{position:absolute;left:-40px;top:196px;width:300px;height:40px;background:var(--amber);transform:skewX(-18deg)}
+  .hero .logo{position:absolute;left:24px;top:28px;height:32px;width:auto}
+  .hero .titles{position:absolute;left:24px;top:78px}
+  .hero .kicker{font-size:13px;font-weight:500;opacity:.88}
+  .hero .wordmark{font-size:40px}
+  .hero .sub{font-size:20px;font-weight:800;font-style:italic;line-height:1.2}
+  .hero .bandtext{position:absolute;left:24px;top:202px;font-size:14px;font-weight:600;color:var(--ink)}
+  .hero img{position:absolute;width:120px}
+  .hero .p1{right:70px;top:120px;transform:rotate(-8deg)}
+  .hero .p2{right:-6px;top:140px;transform:rotate(7deg)}
+  .sheet{flex-grow:1;background:#fff;border-radius:24px 24px 0 0;margin-top:-20px;position:relative;padding:24px 24px 20px;display:flex;flex-direction:column;gap:14px}
+  .sheet h1{font-size:20px;font-weight:600;line-height:1.3;margin:0}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:13px;font-weight:500}
+  .field input{font-size:16px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;color:var(--ink);background:#fff}
+  .field input:focus{outline:none;border-color:var(--crimson)}
+
+  /* Wheel */
+  .wheelscreen{background:var(--teal);color:#fff;align-items:center;padding:40px 24px 32px;gap:18px}
+  .topline{align-self:stretch;display:flex;justify-content:space-between;align-items:center}
+  .topline .wordmark{font-size:20px;letter-spacing:-.5px}
+  .topline span{font-size:13px;font-weight:500;color:#B9C7CE}
+  .greet{align-self:stretch;margin-top:12px}
+  .greet h1{font-size:26px;font-weight:600;line-height:1.2;margin:0 0 6px}
+  .greet p{font-size:15px;color:#C9D4DA;margin:0}
+  .wheelwrap{position:relative;width:min(316px,80vw);aspect-ratio:1;margin-top:18px}
+  .pointer{position:absolute;left:50%;top:-14px;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:30px solid var(--amber);z-index:2}
+  #wheel{width:100%;height:100%;display:block;transform:rotate(-12deg);transition:transform 4s cubic-bezier(.12,.72,.12,1)}
+  .hub{position:absolute;inset:0;margin:auto;width:32%;height:32%;border-radius:50%;background:var(--teal);border:6px solid #fff;color:#fff;font-weight:800;font-size:20px;cursor:pointer}
+  .hub:disabled{cursor:default}
+  .caption{font-size:14px;color:#B9C7CE;margin-top:18px;text-align:center}
+  .wheelscreen .err{color:#FFB3B6}
+
+  /* Quiz */
+  .qhead{background:var(--crimson);color:#fff;padding:36px 24px 22px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden}
+  .qhead .band{position:absolute;right:-30px;top:0;width:120px;height:100%;background:var(--amber);transform:skewX(-18deg)}
+  .qrow{display:flex;justify-content:space-between;align-items:center;position:relative}
+  .qrow .num{font-size:14px;font-weight:600}
+  .qrow .secs{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;margin-right:6px;min-width:84px;text-align:right}
+  .dots{display:flex;gap:6px;position:relative}
+  .dots i{flex-grow:1;height:6px;border-radius:99px;background:rgba(255,255,255,.35)}
+  .dots i.on{background:#fff}
+  .qbody{padding:26px 24px 24px;display:flex;flex-direction:column;gap:18px;flex-grow:1}
+  .qmeta{display:flex;align-items:center;gap:10px;min-height:44px}
+  .qmeta img{height:44px}
+  .qmeta .packs{margin-left:auto;display:flex;gap:4px}
+  .cat-Thiotacid{background:var(--crimson);color:#fff}
+  .cat-Disease{background:var(--teal);color:#fff}
+  .cat-Omnichannel{background:var(--amber);color:var(--ink)}
+  .qtext{font-size:22px;font-weight:600;line-height:1.35;margin:0}
+  .opts{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .opt{text-align:left;font-size:16px;padding:16px 18px;min-height:56px;border:1.5px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
+  .opt:hover:not(:disabled){border-color:var(--crimson)}
+  .opt.picked{background:var(--crimson);border-color:var(--crimson);color:#fff;font-weight:600}
+  .hint{margin-top:auto;font-size:13px;color:var(--muted);text-align:center}
+
+  /* Result */
+  .resultscreen{background:var(--crimson);color:#fff;position:relative}
+  .resultscreen .band{position:absolute;left:-60px;top:330px;width:120%;height:64px;background:var(--amber);transform:skewY(-8deg)}
+  .rtop{padding:44px 24px 0;position:relative}
+  .rtop .wordmark{font-size:20px;letter-spacing:-.5px}
+  .rtop .msg{font-size:16px;font-weight:500;margin-top:30px;color:#F6D9DA}
+  .rtop .score{font-size:96px;font-weight:800;line-height:1;letter-spacing:-3px}
+  .rpacks{position:relative;display:flex;justify-content:center;margin-top:54px;height:230px}
+  .rpacks img{width:150px;object-fit:contain}
+  .rpacks .p1{transform:rotate(-7deg) translateX(14px)}
+  .rpacks .p2{transform:rotate(6deg) translateX(-14px)}
+  .rcard{margin:auto 16px 16px;background:#fff;color:var(--ink);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:16px;position:relative}
+  .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .stats div{background:var(--silver);border-radius:14px;padding:12px 14px}
+  .stats small{display:block;font-size:13px;color:var(--muted)}
+  .stats b{font-size:26px;font-weight:800;color:var(--crimson);font-variant-numeric:tabular-nums}
+  .stats b span{font-size:14px;font-weight:500;color:var(--muted)}
+  .review{font-size:14px;display:flex;flex-direction:column;gap:10px}
+  .review .ok{color:var(--ok);font-weight:600}
+  .review .no{color:var(--crimson);font-weight:600}
+
+  /* Celebration */
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+  .resultscreen.play .rtop .score{animation:scorepop .7s cubic-bezier(.2,1.6,.4,1) .15s both}
+  .resultscreen.play .rtop .msg{animation:fadeup .5s ease .05s both}
+  .resultscreen.play .rpacks .p1{animation:packL .8s cubic-bezier(.2,1.3,.4,1) .35s both}
+  .resultscreen.play .rpacks .p2{animation:packR .8s cubic-bezier(.2,1.3,.4,1) .5s both}
+  .resultscreen.play .rcard{animation:fadeup .6s ease .7s both}
+  .resultscreen.play .badge{animation:scorepop .6s cubic-bezier(.2,1.6,.4,1) 1.2s both}
+  @keyframes scorepop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+  @keyframes fadeup{0%{transform:translateY(24px);opacity:0}100%{transform:none;opacity:1}}
+  @keyframes packL{0%{transform:translate(-80px,120px) rotate(-30deg);opacity:0}100%{transform:rotate(-7deg) translateX(14px);opacity:1}}
+  @keyframes packR{0%{transform:translate(80px,120px) rotate(30deg);opacity:0}100%{transform:rotate(6deg) translateX(-14px);opacity:1}}
+  .badge{display:inline-block;margin-top:10px;background:var(--amber);color:var(--ink);font-weight:700;font-size:14px;border-radius:99px;padding:5px 14px}
+  .stars{display:flex;gap:6px;margin-top:12px}
+  .stars svg{width:28px;height:28px}
+
+  /* Board */
+  .boardscreen{background:var(--silver)}
+  .bhead{background:var(--teal);color:#fff;padding:40px 24px 24px;display:flex;flex-direction:column;gap:18px}
+  .bhead .row{display:flex;justify-content:space-between;align-items:baseline}
+  .bhead h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:0}
+  .bhead .row span{font-size:12px;color:#B9C7CE}
+  .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end;min-height:150px}
+  .podium .col{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+  .podium .nm{font-size:14px;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  .podium .sc{font-size:12px;color:#C9D4DA}
+  .podium .blk{align-self:stretch;border-radius:12px 12px 0 0;display:flex;justify-content:center;padding-top:8px;font-weight:800}
+  .podium .c1 .blk{height:100px;background:var(--crimson);font-size:34px}
+  .podium .c2 .blk{height:70px;background:#fff;color:var(--teal);font-size:28px}
+  .podium .c3 .blk{height:52px;background:var(--amber);color:var(--ink);font-size:24px}
+  .blist{padding:16px;display:flex;flex-direction:column;gap:8px;flex-grow:1}
+  .bgrid{display:grid;grid-template-columns:36px minmax(0,1fr) 52px 64px;gap:8px;align-items:center}
+  .bh{padding:0 14px;font-size:12px;color:var(--muted)}
+  .br{background:#fff;border-radius:12px;padding:12px 14px;font-size:15px}
+  .br .r{font-weight:800;color:var(--crimson)}
+  .br .n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .br.me{outline:2px solid var(--amber)}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .empty{text-align:center;color:var(--muted);padding:24px 0}
+
+  /* Countdown */
+  .countscreen{background:var(--crimson);color:#fff;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .countscreen .band{position:absolute;left:-20%;top:58%;width:140%;height:90px;background:var(--amber);transform:skewY(-8deg)}
+  .countscreen .lbl{position:relative;font-size:18px;font-weight:600;color:#F6D9DA;margin-bottom:8px}
+  .countnum{position:relative;font-size:180px;font-weight:800;line-height:1;letter-spacing:-6px;font-variant-numeric:tabular-nums}
+  .countnum.go{font-size:120px;font-style:italic;letter-spacing:-3px}
+  .countnum.pop{animation:pop .8s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes pop{0%{transform:scale(1.8);opacity:0}25%{transform:scale(1);opacity:1}80%{transform:scale(.92);opacity:1}100%{transform:scale(.7);opacity:0}}
+  .ring{position:relative;width:240px;height:240px;display:grid;place-items:center}
+  .ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+  .ring circle{fill:none;stroke-width:10}
+  .ring .track{stroke:rgba(255,255,255,.2)}
+  .ring .arc{stroke:var(--amber);stroke-linecap:round;stroke-dasharray:691;stroke-dashoffset:0}
+  .ring .arc.run{animation:sweep .8s linear both}
+  @keyframes sweep{from{stroke-dashoffset:0}to{stroke-dashoffset:691}}
+
+  /* Review */
+  .rvhead{background:var(--crimson);color:#fff;padding:36px 24px 22px;position:relative;overflow:hidden}
+  .rvhead .band{position:absolute;right:-30px;top:0;width:120px;height:100%;background:var(--amber);transform:skewX(-18deg)}
+  .rvhead h1{position:relative;font-size:26px;font-weight:800;letter-spacing:-.5px;margin:0}
+  .rvhead p{position:relative;margin:4px 0 0;font-size:14px;color:#F6D9DA}
+  .rvlist{padding:20px 16px;display:flex;flex-direction:column;gap:12px;background:var(--silver);flex-grow:1}
+  .rvitem{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .rvtop{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+  .rvtop .res{margin-left:auto;display:flex;align-items:center;gap:4px}
+  .rvq{font-size:16px;font-weight:600;line-height:1.4;margin:0}
+  .ans{font-size:14px;border-radius:10px;padding:10px 12px;line-height:1.4}
+  .ans small{display:block;font-size:12px;font-weight:500;opacity:.85}
+  .ans.right{background:#E3F2EA;color:#145A37;border:1.5px solid var(--ok);font-weight:600}
+  .ans.wrong{background:#F7E3E4;color:var(--crimson-dk);border:1.5px solid var(--crimson)}
+
+  /* Cover */
+  .cover{background:var(--teal);color:#fff;position:relative;overflow:hidden;padding:28px 24px 28px;align-items:center;text-align:center}
+  .cover .logo{align-self:flex-start;height:30px;width:auto;position:relative;z-index:1}
+  .cover .kick{position:relative;z-index:1;margin-top:26px;font-size:14px;font-weight:600;color:#B9C7CE}
+  .cover .wordmark{position:relative;z-index:1;font-size:46px;margin-top:2px}
+  .cover .sub{position:relative;z-index:1;font-size:20px;font-weight:800;font-style:italic;color:var(--amber)}
+  .trophy{position:relative;width:220px;height:220px;display:grid;place-items:center;margin:14px 0 4px}
+  .trophy .rays{position:absolute;inset:-40px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(242,166,25,.28) 0deg 10deg,transparent 10deg 30deg);
+    -webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:spin 24s linear infinite}
+  .trophy .disc{position:relative;width:140px;height:140px;border-radius:50%;background:var(--crimson);display:grid;place-items:center;box-shadow:0 0 0 8px rgba(255,255,255,.08);animation:pulse 2.4s ease-in-out infinite}
+  .trophy .disc svg{animation:bob 2.4s ease-in-out infinite}
+  .cover h1{position:relative;z-index:1;font-size:34px;font-weight:800;line-height:1.1;letter-spacing:-1px;margin:0}
+  .cover h1 span{color:var(--amber)}
+  .cover .detail{position:relative;z-index:1;font-size:15px;color:#C9D4DA;margin:10px 0 0;max-width:300px}
+  .cover .packs{position:relative;z-index:1;display:flex;justify-content:center;margin:18px 0 6px;height:120px}
+  .cover .packs img{height:118px}
+  .cover .packs .p1{transform:rotate(-8deg) translateX(10px)}
+  .cover .packs .p2{transform:rotate(7deg) translateX(-10px)}
+  .cover .go{position:relative;z-index:1;margin-top:auto;background:var(--amber);color:var(--ink);font-weight:800;font-size:18px}
+  .cover .link{color:#fff;position:relative;z-index:1}
+  .cover .spark{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--amber);opacity:.0;animation:twinkle 3s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{50%{box-shadow:0 0 0 18px rgba(242,166,25,.12)}}
+  @keyframes bob{50%{transform:translateY(-6px)}}
+  @keyframes twinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.9;transform:scale(1)}}
+  @media (prefers-reduced-motion: reduce){.cover *{animation:none !important}.cover .spark{opacity:.6}}
+
+  /* Prize */
+  .prize{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;background:var(--amber);color:var(--ink);border-radius:16px;padding:14px 16px}
+  .prize .ic{flex-shrink:0;width:42px;height:42px;border-radius:12px;background:var(--crimson);color:#fff;display:grid;place-items:center;animation:wiggle 2.8s ease-in-out infinite}
+  .prize b{display:block;font-size:16px;font-weight:800;line-height:1.25}
+  .prize small{display:block;font-size:12px;font-weight:500;line-height:1.35}
+  .prize::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:shine 3.2s ease-in-out infinite}
+  .prizepill{display:inline-flex;align-items:center;gap:6px;background:var(--amber);color:var(--ink);font-size:12px;font-weight:700;border-radius:99px;padding:4px 12px;align-self:flex-start}
+  @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+  @keyframes wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-12deg)}90%{transform:rotate(10deg)}95%{transform:rotate(-6deg)}}
+  @media (prefers-reduced-motion: reduce){.prize::after,.prize .ic{animation:none}}
+
+  /* Animated leaderboard */
+  .anim .podium .blk{transform-origin:bottom;animation:grow .7s cubic-bezier(.2,1.2,.4,1) both}
+  .anim .podium .c3 .blk{animation-delay:.15s} .anim .podium .c2 .blk{animation-delay:.35s} .anim .podium .c1 .blk{animation-delay:.55s}
+  .anim .podium .nm,.anim .podium .sc{animation:fadeup .5s both}
+  .anim .podium .c3 .nm,.anim .podium .c3 .sc{animation-delay:.6s}
+  .anim .podium .c2 .nm,.anim .podium .c2 .sc{animation-delay:.8s}
+  .anim .podium .c1 .nm,.anim .podium .c1 .sc{animation-delay:1s}
+  .anim .crown{animation:crown .7s 1.15s cubic-bezier(.2,1.6,.4,1) both}
+  .anim .br{animation:slideIn .45s cubic-bezier(.2,1,.3,1) both;animation-delay:calc(1.1s + var(--i) * .07s)}
+  .anim .br.me{animation:slideIn .45s cubic-bezier(.2,1,.3,1) both,glow 1.4s ease-in-out 2;animation-delay:calc(1.1s + var(--i) * .07s),1.9s}
+  .crown{display:block;color:var(--amber);margin-bottom:-2px}
+  .anim .podium .col.me .blk{box-shadow:0 0 0 3px var(--amber)}
+  @keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+  @keyframes crown{from{opacity:0;transform:translateY(-20px) scale(.4) rotate(-25deg)}to{opacity:1;transform:none}}
+  @keyframes glow{50%{box-shadow:0 0 0 6px rgba(242,166,25,.5)}}
+  @media (prefers-reduced-motion: reduce){.anim *{animation:none !important}}
+  @media (prefers-reduced-motion: reduce){.resultscreen.play *{animation:none !important}#wheel{transition-duration:.8s}.countnum.pop{animation:none}.ring .arc.run{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="preview hidden" id="previewTag">Preview mode</div>
+
+  <!-- 1. Register -->
+  <!-- 0. Cover -->
+  <section class="screen cover" id="s-cover">
+    <span class="spark" style="left:12%;top:30%;animation-delay:.2s"></span>
+    <span class="spark" style="left:84%;top:26%;animation-delay:1.1s"></span>
+    <span class="spark" style="left:20%;top:52%;animation-delay:2s"></span>
+    <span class="spark" style="left:78%;top:50%;animation-delay:.7s"></span>
+    <img class="logo" src="eva-logo-white.png" alt="EVA Pharma">
+    <div class="kick">Team challenge</div>
+    <div class="wordmark">THIOTACID</div>
+    <div class="sub">Launch Challenge</div>
+    <div class="trophy"><div class="rays"></div><div class="disc"><svg viewBox="0 0 64 64" width="78" height="78" aria-hidden="true"><path fill="#F2A619" d="M18 6h28v14c0 9-6 16-14 16S18 29 18 20z"/><path fill="none" stroke="#F2A619" stroke-width="5" stroke-linecap="round" d="M18 11H9v5c0 6 4 10 10 10M46 11h9v5c0 6-4 10-10 10"/><path fill="#F2A619" d="M28 35h8v10h-8z"/><path fill="#F2A619" d="M20 46h24l2 9H18z"/><path fill="#FFE08A" d="M24 10h5v12c0 4 1 7 3 9-5-1-8-5-8-10z" opacity=".7"/></svg></div></div>
+    <h1 id="coverHead"></h1>
+    <p class="detail" id="coverDetail"></p>
+    <div class="packs"><img class="p1" src="lipo.png" alt="Thiotacid Liposomal pack"><img class="p2" src="xr.png" alt="Thiotacid Plus XR pack"></div>
+    <button class="btn go" type="button" data-go="reg">LET’S PLAY</button>
+    <button class="link" type="button" data-go="board">View leaderboard</button>
+  </section>
+
+  <section class="screen hidden" id="s-reg">
+    <div class="hero">
+      <div class="band"></div>
+      <img class="logo" src="eva-logo-white.png" alt="EVA Pharma">
+      <div class="titles">
+        <div class="kicker">Team challenge</div>
+        <div class="wordmark">THIOTACID</div>
+        <div class="sub">Launch Challenge</div>
+      </div>
+      <div class="bandtext">Liposomal + Plus XR</div>
+      <img class="p1" src="lipo.png" alt="Thiotacid Liposomal pack">
+      <img class="p2" src="xr.png" alt="Thiotacid Plus XR pack">
+    </div>
+    <form class="sheet" id="regForm" novalidate>
+      <h1>Spin. Answer 3 questions.<br>Top the board.</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="chip" style="background:#F7E3E4;color:var(--crimson)">Timed: faster ranks higher</span>
+        <span class="chip" style="background:#FDF0D5;color:#6B4A00">One try per person</span>
+      </div>
+      <div class="field"><label for="name">Full name</label><input id="name" autocomplete="name" maxlength="60" placeholder="Your name"></div>
+      <div class="field"><label for="email">Work email</label><input id="email" type="email" autocomplete="email" placeholder="name@evapharma.com"></div>
+      <div class="field"><label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" placeholder="+966 5x xxx xxxx"></div>
+      <button class="btn" id="regBtn" type="submit">Continue</button>
+      <div class="err" id="regErr" role="alert"></div>
+      <button class="link" type="button" data-go="board">View leaderboard</button>
+    </form>
+  </section>
+
+  <!-- 2. Wheel -->
+  <section class="screen wheelscreen hidden" id="s-wheel">
+    <div class="topline"><div class="wordmark">THIOTACID</div><span>Launch Challenge</span></div>
+    <div class="greet"><h1 id="hello">Good luck.</h1><p>Spin to draw your 3 questions. The clock starts when the first one appears.</p></div>
+    <div class="wheelwrap">
+      <div class="pointer" aria-hidden="true"></div>
+      <svg id="wheel" viewBox="0 0 300 300" aria-hidden="true"></svg>
+      <button class="hub" id="spinBtn">SPIN</button>
+    </div>
+    <div class="caption">3 questions. The clock runs until your last answer.</div>
+    <div class="err" id="wheelErr" role="alert"></div>
+  </section>
+
+  <!-- 3. Question -->
+  <section class="screen hidden" id="s-quiz" aria-live="polite">
+    <div class="qhead">
+      <div class="band"></div>
+      <div class="qrow"><div class="num" id="qNum">Question 1 of 3</div><div class="secs" id="qSecs">0.0s</div></div>
+      <div class="dots" id="dots"><i></i><i></i><i></i></div>
+    </div>
+    <div class="qbody">
+      <div class="qmeta"><span class="chip" id="qCat"></span><span class="packs" id="qPacks"></span></div>
+      <h1 class="qtext" id="qText"></h1>
+      <div class="opts" id="opts"></div>
+      <div class="hint">Tap an answer. You can’t go back.</div>
+    </div>
+  </section>
+
+  <!-- 4. Result -->
+  <section class="screen resultscreen hidden" id="s-result">
+    <div class="band"></div>
+    <div class="rtop">
+      <div class="wordmark">THIOTACID</div>
+      <div class="msg" id="resMsg"></div>
+      <div class="score" id="resScore">0/3</div>
+      <div class="stars" id="stars" aria-hidden="true"></div>
+      <span class="badge hidden" id="badge"></span>
+    </div>
+    <div class="rpacks"><img class="p1" src="lipo.png" alt="Thiotacid Liposomal pack"><img class="p2" src="xr.png" alt="Thiotacid Plus XR pack"></div>
+    <div class="rcard">
+      <div class="stats">
+        <div><small>Your time</small><b id="resTime">0 s</b></div>
+        <div><small>Your rank</small><b id="resRank">-</b></div>
+      </div>
+      <button class="btn" id="viewQBtn" type="button" style="background:#fff;color:var(--crimson);border:1.5px solid var(--crimson)">View questions</button>
+      <button class="btn" data-go="board">See leaderboard</button>
+      <button class="link hidden" id="againBtn" type="button">Play again (preview only)</button>
+    </div>
+  </section>
+
+  <!-- Countdown -->
+  <section class="screen countscreen hidden" id="s-count" aria-live="assertive">
+    <div class="band"></div>
+    <div class="lbl" id="countLbl">Get ready</div>
+    <div class="ring">
+      <svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="110"></circle><circle class="arc" id="countArc" cx="120" cy="120" r="110"></circle></svg>
+      <div class="countnum" id="countNum">3</div>
+    </div>
+  </section>
+
+  <!-- Review -->
+  <section class="screen hidden" id="s-review">
+    <div class="rvhead"><div class="band"></div><h1>Your questions</h1><p id="rvSub"></p></div>
+    <div class="rvlist">
+      <div id="rvItems" style="display:flex;flex-direction:column;gap:12px"></div>
+      <button class="btn" type="button" data-go="result">Back to results</button>
+    </div>
+  </section>
+
+  <!-- 5. Leaderboard -->
+  <section class="screen boardscreen hidden" id="s-board">
+    <div class="bhead">
+      <div class="row"><h1>Leaderboard</h1><span id="bCount"></span></div>
+      <span class="prizepill"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg><span id="prizePill"></span></span>
+      <div class="podium" id="podium"></div>
+    </div>
+    <div class="blist">
+      <div class="bgrid bh"><div>#</div><div>Name</div><div class="num">Score</div><div class="num">Time</div></div>
+      <div id="bRows" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button class="link" id="backBtn" type="button" data-go="cover">Back to start</button>
+    </div>
+  </section>
+</div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script>
+/* ===== Settings ===== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyKXohxkIwqEh-vM9N9_oA0zjwz-Svg2dhEbNKPx_5QaUblRwbaCKl4pRrJFFqSnbIB/exec';
+const PREVIEW_BANK = null; // stays null in the live game: the answer key lives only in the Google Sheet
+const PREVIEW = !API_URL.startsWith('https://');
+/* Prize message: edit these lines when the prizes are confirmed */
+const PRIZE = {
+  winners: 3,
+  headline: 'Top 3 players win a prize',
+  coverHead: 'TOP 3 <span>WIN A PRIZE!</span>',
+  detail: 'Winners announced when the challenge closes. Answer right, answer fast.'
+};
+
+const $ = id => document.getElementById(id);
+const screens = ['cover','reg','wheel','count','quiz','result','review','board'];
+let boardTimer = null, boardAnim = false;
+function show(name){
+  screens.forEach(s => $('s-'+s).classList.toggle('hidden', s !== name));
+  clearInterval(boardTimer);
+  if (name === 'board'){ boardAnim = true; loadBoard(); if (!PREVIEW) boardTimer = setInterval(loadBoard, 20000); }
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
+if (PREVIEW) $('previewTag').classList.remove('hidden');
+
+const ERR = {
+  name:'Enter your full name.', email:'Enter a valid work email.',
+  domain:'Use your EVA Pharma work email.', phone:'Enter a valid phone number (9 to 15 digits).',
+  played:'This email has already played. Check the leaderboard for your rank.',
+  closed:'The challenge is closed. Thanks for joining.', token:'Session expired. Start again.',
+  network:'Connection failed. Check your internet and try again.', server:'Something went wrong. Try again.'
+};
+
+async function api(action, data){
+  if (PREVIEW) return preview(action, data);
+  try{
+    const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({action}, data))});
+    return await r.json();
+  }catch(e){ return {ok:false, error:'network'}; }
+}
+
+/* ===== State ===== */
+let token = null, player = null, questions = [], idx = 0, answers = {}, times = {}, tick = null, qStart = 0, gameStart = 0;
+
+/* ===== Register ===== */
+$('regForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('name').value.trim(), email = $('email').value.trim(), phone = $('phone').value.trim();
+  $('regErr').textContent = '';
+  if (name.length < 2) return $('regErr').textContent = ERR.name;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return $('regErr').textContent = ERR.email;
+  const d = phone.replace(/\D/g,''); if (d.length < 9 || d.length > 15) return $('regErr').textContent = ERR.phone;
+  $('regBtn').disabled = true; $('regBtn').textContent = 'Checking...';
+  const res = await api('register', {name, email, phone});
+  $('regBtn').disabled = false; $('regBtn').textContent = 'Continue';
+  if (!res.ok) return $('regErr').textContent = ERR[res.error] || ERR.server;
+  token = res.token; player = name;
+  $('hello').textContent = 'Good luck, ' + name.split(' ')[0] + '.';
+  resetWheel();
+  show('wheel');
+});
+
+/* ===== Wheel ===== */
+(function drawWheel(){
+  const cols = ['#A3141C','#F2A619','#E2202B','#FFFFFF','#A3141C','#F2A619','#E2202B','#FFFFFF'];
+  const tc = {'#A3141C':'#FFFFFF','#F2A619':'#1C1C1E','#E2202B':'#FFFFFF','#FFFFFF':'#A3141C'};
+  let h = '<circle cx="150" cy="150" r="149" fill="#0F2A36"/>';
+  for (let i = 0; i < 8; i++){
+    const a0 = i/8*2*Math.PI - Math.PI/2 - Math.PI/8, a1 = a0 + Math.PI/4, am = (a0+a1)/2;
+    const p = (a,r) => [150 + r*Math.cos(a), 150 + r*Math.sin(a)];
+    const [x0,y0] = p(a0,146), [x1,y1] = p(a1,146), [tx,ty] = p(am,104);
+    h += `<path d="M150 150 L${x0} ${y0} A146 146 0 0 1 ${x1} ${y1} Z" fill="${cols[i]}" stroke="#0F2A36" stroke-width="3"/>`;
+    h += `<text x="${tx}" y="${ty}" fill="${tc[cols[i]]}" font-family="Poppins,sans-serif" font-weight="800" font-size="22" text-anchor="middle" dominant-baseline="central">${i+1}</text>`;
+  }
+  $('wheel').innerHTML = h;
+})();
+let wheelAngle = -12;
+function resetWheel(){ $('spinBtn').disabled = false; $('wheelErr').textContent = ''; }
+
+$('spinBtn').addEventListener('click', async () => {
+  $('spinBtn').disabled = true; $('wheelErr').textContent = '';
+  wheelAngle += 5*360 + Math.floor(Math.random()*360);
+  $('wheel').style.transform = `rotate(${wheelAngle}deg)`;
+  const [res] = await Promise.all([api('begin', {token}), new Promise(r => setTimeout(r, 4100))]);
+  if (!res.ok){ $('wheelErr').textContent = ERR[res.error] || ERR.server; return; }
+  questions = res.questions; idx = 0; answers = {}; times = {};
+  await countdown();
+  gameStart = performance.now();
+  clearInterval(tick); tick = setInterval(updateClock, 100);
+  show('quiz'); renderQ();
+});
+
+/* ===== 3-2-1 countdown (fixed 3.2 s, the server excludes it from player time) ===== */
+function countdown(){
+  show('count');
+  const steps = ['3','2','1','Go!'];
+  return new Promise(done => {
+    let i = 0;
+    const step = () => {
+      if (i === steps.length) return done();
+      const n = $('countNum'), arc = $('countArc');
+      n.textContent = steps[i];
+      n.className = 'countnum' + (steps[i] === 'Go!' ? ' go' : '');
+      $('countLbl').textContent = steps[i] === 'Go!' ? 'The clock is running' : 'Get ready';
+      arc.classList.remove('run'); void arc.offsetWidth;
+      if (steps[i] !== 'Go!') arc.classList.add('run'); else arc.style.strokeDashoffset = '691';
+      void n.offsetWidth; n.classList.add('pop');
+      i++; setTimeout(step, 800);
+    };
+    $('countArc').style.strokeDashoffset = '';
+    step();
+  });
+}
+
+/* ===== Questions ===== */
+function shuffle(a){ a = a.slice(); for (let i = a.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+
+function renderQ(){
+  const q = questions[idx];
+  $('qNum').textContent = `Question ${idx+1} of ${questions.length}`;
+  [...$('dots').children].forEach((d,i) => d.classList.toggle('on', i <= idx));
+  $('qCat').textContent = q.cat; $('qCat').className = 'chip cat-' + q.cat;
+  const t = q.text;
+  $('qPacks').innerHTML = q.cat !== 'Thiotacid' ? '' :
+    /liposomal/i.test(t) && !/xr/i.test(t) ? '<img src="lipo.png" alt="">' :
+    /xr/i.test(t) && !/liposomal/i.test(t) ? '<img src="xr.png" alt="">' : '<img src="lipo.png" alt=""><img src="xr.png" alt="">';
+  $('qText').textContent = t;
+  const box = $('opts'); box.innerHTML = '';
+  shuffle(q.options).forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.type = 'button'; b.textContent = o.t;
+    b.addEventListener('click', () => pick(o.k, b));
+    box.appendChild(b);
+  });
+  qStart = performance.now();
+  updateClock();
+}
+
+function updateClock(){
+  const s = (performance.now() - gameStart) / 1000;
+  $('qSecs').textContent = s < 60 ? s.toFixed(1) + 's' : Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
+}
+
+function pick(key, btn){
+  if (answers[questions[idx].id] !== undefined) return;
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  if (btn) btn.classList.add('picked');
+  answers[questions[idx].id] = key;
+  times[questions[idx].id] = Math.round((performance.now() - qStart) / 100) / 10;
+  setTimeout(() => { idx++; idx < questions.length ? renderQ() : finish(); }, 350);
+}
+
+async function finish(){
+  clearInterval(tick);
+  $('qText').textContent = 'Saving your answers...'; $('opts').innerHTML = '';
+  let res = await api('submit', {token, answers, times});
+  if (!res.ok && res.error === 'network') res = await api('submit', {token, answers, times});
+  if (!res.ok){ $('qText').textContent = ERR[res.error] || ERR.server; return; }
+  const first = (player || '').split(' ')[0];
+  const msgs = [`Thanks for playing, ${first}. Check the answers and you'll ace it next time.`, `Good try, ${first}.`, `Great job, ${first}!`, `Perfect score, ${first}!`];
+  $('resMsg').textContent = res.score === res.total ? msgs[3] : msgs[Math.min(res.score, 2)];
+  $('resRank').innerHTML = res.rank ? `#${res.rank} <span>of ${res.players}</span>` : '-';
+  const STAR = on => `<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" fill="${on ? '#F2A619' : 'rgba(255,255,255,.25)'}"/></svg>`;
+  $('stars').innerHTML = Array.from({length: res.total}, (_, i) => STAR(i < res.score)).join('');
+  const badge = !res.rank ? '' : res.rank === 1 ? 'You’re #1 and in the prize zone' : res.rank <= PRIZE.winners ? `#${res.rank}: you’re in the prize zone` : `${res.rank - PRIZE.winners} place${res.rank - PRIZE.winners > 1 ? 's' : ''} from the prize zone`;
+  $('badge').textContent = badge; $('badge').classList.toggle('hidden', !badge);
+  lastReview = res.review || null;
+  $('viewQBtn').classList.toggle('hidden', !lastReview);
+  if (lastReview) renderReview(res.score, res.total);
+  $('againBtn').classList.toggle('hidden', !PREVIEW);
+  lastToken = token; token = null;
+  show('result');
+  celebrate(res.score, res.total, res.time);
+}
+
+/* ===== Celebration: score count-up, pack entrance, confetti by score ===== */
+function celebrate(score, total, time){
+  const scr = $('s-result');
+  scr.classList.remove('play'); void scr.offsetWidth; scr.classList.add('play');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // count-ups
+  const t0 = performance.now(), dur = reduced ? 0 : 900;
+  const run = now => {
+    const p = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - p, 3);
+    $('resScore').textContent = `${Math.round(score * e)}/${total}`;
+    $('resTime').textContent = (time * e).toFixed(1) + ' s';
+    if (p < 1) requestAnimationFrame(run);
+  };
+  requestAnimationFrame(run);
+  if (reduced || score === 0) return;
+  const amount = score === total ? 170 : score === 2 ? 90 : 35;
+  setTimeout(() => confetti(amount), 300);
+  if (score === total) setTimeout(() => confetti(120), 1300);
+}
+
+function confetti(n){
+  const cv = $('confetti'), ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const W = innerWidth, H = innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cols = ['#A3141C', '#F2A619', '#E2202B', '#FFFFFF', '#FFC94D'];
+  const ps = (confetti.ps = confetti.ps || []);
+  for (let i = 0; i < n; i++){
+    const side = i % 2 ? 1 : -1;
+    ps.push({
+      x: W / 2 + side * W * 0.35, y: H * 0.62,
+      vx: -side * (2 + Math.random() * 6) + (Math.random() - .5) * 3, vy: -(9 + Math.random() * 9),
+      w: 6 + Math.random() * 6, h: 8 + Math.random() * 8, r: Math.random() * 6, vr: (Math.random() - .5) * .35,
+      c: cols[i % cols.length], round: Math.random() < .3, life: 0
+    });
+  }
+  if (confetti.running) return;
+  confetti.running = true;
+  const frame = () => {
+    ctx.clearRect(0, 0, W, H);
+    for (let i = ps.length - 1; i >= 0; i--){
+      const p = ps[i];
+      p.vy += 0.32; p.vx *= 0.99; p.vy *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+      if (p.y > H + 40 || p.life > 400){ ps.splice(i, 1); continue; }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
+      if (p.round){ ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill(); }
+      else { ctx.scale(1, Math.cos(p.life * 0.15)); ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+      ctx.restore();
+    }
+    if (ps.length) requestAnimationFrame(frame); else { confetti.running = false; ctx.clearRect(0, 0, W, H); }
+  };
+  requestAnimationFrame(frame);
+}
+let lastToken = null, lastReview = null;
+const ICON_OK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+const ICON_NO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function renderReview(score, total){
+  $('rvSub').textContent = `${score} of ${total} correct`;
+  $('rvItems').innerHTML = lastReview.map((r, i) => `
+    <div class="rvitem">
+      <div class="rvtop"><span>Question ${i+1}</span>${r.cat ? `<span class="chip cat-${esc(r.cat)}">${esc(r.cat)}</span>` : ''}
+        <span class="res" style="color:${r.ok ? 'var(--ok)' : 'var(--crimson)'}">${r.ok ? ICON_OK + 'Correct' : ICON_NO + 'Wrong'}</span></div>
+      <p class="rvq">${esc(r.text)}</p>
+      ${r.ok
+        ? `<div class="ans right"><small>Your answer</small>${esc(r.chosen)}</div>`
+        : `<div class="ans wrong"><small>Your answer</small>${esc(r.chosen)}</div><div class="ans right"><small>Correct answer</small>${esc(r.correct)}</div>`}
+    </div>`).join('');
+}
+$('viewQBtn').addEventListener('click', () => show('review'));
+$('againBtn').addEventListener('click', () => { $('regForm').reset(); show('reg'); });
+
+/* ===== Leaderboard ===== */
+async function loadBoard(){
+  let res;
+  if (PREVIEW) res = preview('leaderboard');
+  else { try{ res = await (await fetch(API_URL + '?action=leaderboard')).json(); } catch(e){ res = {ok:false}; } }
+  const rows = $('bRows'), pod = $('podium');
+  if (!res.ok){ pod.innerHTML = ''; rows.innerHTML = `<div class="empty">${ERR.network}</div>`; return; }
+  const b = res.board;
+  $('bCount').textContent = b.length ? `${b.length} player${b.length > 1 ? 's' : ''}` : '';
+  if (!b.length){ pod.innerHTML = ''; rows.innerHTML = '<div class="empty">No scores yet. Be the first to play.</div>'; return; }
+  const crown = '<svg class="crown" width="34" height="24" viewBox="0 0 34 24" aria-hidden="true"><path fill="currentColor" d="M2 8l7 6 8-12 8 12 7-6-3 16H5z"/></svg>';
+  const col = (r, c) => r ? `<div class="col ${c}${r.me ? ' me' : ''}">${c === 'c1' ? crown : ''}<div class="nm">${esc(r.name)}</div><div class="sc">${r.score}/3, ${r.time} s</div><div class="blk">${r.rank}</div></div>` : `<div class="col ${c}"></div>`;
+  pod.innerHTML = col(b[1],'c2') + col(b[0],'c1') + col(b[2],'c3');
+  rows.innerHTML = b.slice(3).map((r, i) => `<div class="bgrid br${r.me ? ' me' : ''}" style="--i:${i}"><div class="r">${r.rank}</div><div class="n">${esc(r.name)}</div><div class="num" style="font-weight:600">${r.score}/3</div><div class="num" style="color:var(--muted)">${r.time} s</div></div>`).join('');
+  const scr = $('s-board');
+  if (boardAnim){
+    boardAnim = false;
+    scr.classList.remove('anim'); void scr.offsetWidth; scr.classList.add('anim');
+    const me = b.findIndex(r => r.me);
+    if (me > -1 && me < 3 && !matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(() => confetti(me === 0 ? 140 : 60), 1250);
+  } else scr.classList.remove('anim'); // silent refresh every 20 s
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+$('coverHead').innerHTML = PRIZE.coverHead; $('coverDetail').textContent = PRIZE.detail;
+$('prizePill').textContent = `Top ${PRIZE.winners} win a prize`;
+if (location.hash === '#board'){ $('backBtn').classList.add('hidden'); show('board'); }
+
+/* ===== Preview mode: only used before the Apps Script URL is added ===== */
+let pv = { start:0, picked:[], name:'', id:0 };
+function pvLoad(){ try{ return JSON.parse(localStorage.getItem('thio-preview-board') || '[]'); }catch(e){ return []; } }
+function pvSave(b){ try{ localStorage.setItem('thio-preview-board', JSON.stringify(b)); }catch(e){} }
+function preview(action, data){
+  const bank = PREVIEW_BANK || [];
+  if (action === 'register'){ pv.name = data.name; pv.id = Date.now(); return {ok:true, token:'preview'}; }
+  if (action === 'begin'){
+    if (!bank.length) return {ok:false, error:'server'};
+    const pool = bank.slice(), picked = [];
+    const thio = pool.filter(q => q.cat === 'Thiotacid');
+    const t = thio[Math.floor(Math.random()*thio.length)]; picked.push(t); pool.splice(pool.indexOf(t),1);
+    while (picked.length < 3) picked.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+    pv.picked = shuffle(picked); pv.start = Date.now() + 7300;
+    return {ok:true, questions: pv.picked.map(q => ({id:q.id, cat:q.cat, text:q.text, options:q.options}))};
+  }
+  if (action === 'submit'){
+    let score = 0; const review = [];
+    pv.picked.forEach(q => {
+      const a = data.answers[q.id], ok = a === q.correct; if (ok) score++;
+      const txt = k => (q.options.find(o => o.k === k) || {}).t || 'No answer';
+      review.push({text:q.text, cat:q.cat, ok, chosen: a ? txt(a) : 'No answer', correct: txt(q.correct)});
+    });
+    const time = Math.round(Math.max(0,(Date.now()-pv.start)/1000)*10)/10;
+    const b = pvLoad(); b.push({id:pv.id, name:pv.name, score, time}); pvSave(b);
+    const sorted = b.sort((x,y) => y.score - x.score || x.time - y.time);
+    return {ok:true, score, total:3, time, rank: sorted.findIndex(r => r.id === pv.id) + 1, players: sorted.length, review};
+  }
+  if (action === 'leaderboard'){
+    const b = pvLoad().sort((x,y) => y.score - x.score || x.time - y.time).slice(0,20);
+    return {ok:true, board: b.map((r,i) => ({rank:i+1, name:r.name, score:r.score, time:r.time, me: r.id === pv.id}))};
+  }
+}
+</script>
+</body>
+</html>
